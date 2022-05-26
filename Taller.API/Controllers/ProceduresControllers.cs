@@ -1,20 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Taller.API.Datos;
 using Taller.API.Datos.Entidades;
 
 namespace Taller.API.Controllers
 {
-    public class VehicleTypesController : Controller
+    public class ProceduresController : Controller
     {
         private readonly DataContext _context;
 
-        public VehicleTypesController(DataContext context)
+        public ProceduresController(DataContext context)
         {
             _context = context;
         }
@@ -22,11 +17,10 @@ namespace Taller.API.Controllers
         // GET: VehicleTypes
         public async Task<IActionResult> Index()
         {
-              return _context.VehicleTypes != null ? 
-                          View(await _context.VehicleTypes.ToListAsync()) :
-                          Problem("Entity set 'DataContext.VehicleTypes'  is null.");
+            return _context.Procedures != null ?
+                        View(await _context.Procedures.ToListAsync()) :
+                        Problem("Entity set 'DataContext.Procedures'  is null.");
         }
-
 
         // GET: VehicleTypes/Create
         public IActionResult Create()
@@ -34,73 +28,15 @@ namespace Taller.API.Controllers
             return View();
         }
 
-        // POST: VehicleTypes/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Description")] VehicleType vehicleType)
+        public async Task<IActionResult> Create([Bind("Id,Description,Price")] Procedure procedure)
         {
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _context.Add(vehicleType);
-                    await _context.SaveChangesAsync();
-                    return RedirectToAction(nameof(Index));
-                }
-                catch (DbUpdateException dbUpdateException)
-                { 
-                    if (dbUpdateException.InnerException.Message.Contains("duplicate"))
-                    {
-                        ModelState.AddModelError(string.Empty, "Ya existe este tipo de vehículo.");
-                    }
-                        else
-                    {
-                        ModelState.AddModelError(string.Empty, dbUpdateException.InnerException.Message);
-                    }
-                }
-                catch (Exception exception)
-                {
-                    ModelState.AddModelError(string.Empty, exception.Message);
-                }
-        }
-            return View(vehicleType);
-        }
-
-        // GET: VehicleTypes/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var vehicleType = await _context.VehicleTypes.FindAsync(id);
-            if (vehicleType == null)
-            {
-                return NotFound();
-            }
-            return View(vehicleType);
-        }
-
-        // POST: VehicleTypes/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Description")] VehicleType vehicleType)
-        {
-            if (id != vehicleType.Id)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(vehicleType);
+                    _context.Add(procedure);
                     await _context.SaveChangesAsync();
                     return RedirectToAction(nameof(Index));
                 }
@@ -108,7 +44,7 @@ namespace Taller.API.Controllers
                 {
                     if (dbUpdateException.InnerException.Message.Contains("duplicate"))
                     {
-                        ModelState.AddModelError(string.Empty, "Ya existe este tipo de vehículo.");
+                        ModelState.AddModelError(string.Empty, "Ya existe este procedimiento.");
                     }
                     else
                     {
@@ -120,25 +56,80 @@ namespace Taller.API.Controllers
                     ModelState.AddModelError(string.Empty, exception.Message);
                 }
             }
-            return View(vehicleType);
+            return View(procedure);
+        }
+
+        // GET: VehicleTypes/Edit/5
+        public async Task<IActionResult> Edit(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var procedure = await _context.Procedures.FindAsync(id);
+            if (procedure == null)
+            {
+                return NotFound();
+            }
+            return View(procedure);
+        }
+
+        // POST: VehicleTypes/Edit/5
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Description,Price")] Procedure procedure)
+        {
+            if (id != procedure.Id)
+            {
+                return NotFound();
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    _context.Update(procedure);
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (DbUpdateException dbUpdateException)
+                {
+                    if (dbUpdateException.InnerException.Message.Contains("duplicate"))
+                    {
+                        ModelState.AddModelError(string.Empty, "Ya existe este tipo de procedimiento.");
+                    }
+                    else
+                    {
+                        ModelState.AddModelError(string.Empty, dbUpdateException.InnerException.Message);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    ModelState.AddModelError(string.Empty, exception.Message);
+                }
+            }
+            return View(procedure);
         }
 
         // GET: VehicleTypes/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null || _context.VehicleTypes == null)
+            if (id == null)
             {
                 return NotFound();
             }
 
-            var vehicleType = await _context.VehicleTypes
+            var procedure = await _context.Procedures
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (vehicleType == null)
+            if (procedure == null)
             {
                 return NotFound();
             }
 
-            _context.VehicleTypes.Remove(vehicleType);
+            _context.Procedures.Remove(procedure);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
