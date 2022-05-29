@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Taller.API.Datos;
 using Taller.API.Datos.Entidades;
 using Taller.API.Models;
+using Taller.Common.Enums;
 
 namespace Taller.API.Helpers
 {
@@ -25,7 +26,34 @@ namespace Taller.API.Helpers
         {
         return await _userManager.CreateAsync(user, password);
         }
-        
+        //Registro
+        public async Task<User> AddUserAsync(AddUserViewModel model, Guid imageId, UserType userType)
+        {
+            User user = new User
+            {
+                Address = model.Address,
+                Document = model.Document,
+                Email = model.Username,
+                FirstName = model.FirstName,
+                LastName = model.LastName,
+                ImageId = imageId,
+                PhoneNumber = model.PhoneNumber,
+                DocumentType = await _context.DocumentTypes.FindAsync(model.DocumentTypeId),
+                UserName = model.Username,
+                UserType = userType
+            };
+
+            IdentityResult result = await _userManager.CreateAsync(user, model.Password);
+            if (result != IdentityResult.Success)
+            {
+                return null;
+            }
+
+            User newUser = await GetUserAsync(model.Username);
+            await AddUserToRoleAsync(newUser, user.UserType.ToString());
+            return newUser;
+        }
+
         public async Task AddUserToRoleAsync(User user, string roleName)
         {
             await _userManager.AddToRoleAsync(user, roleName);
@@ -41,9 +69,22 @@ namespace Taller.API.Helpers
             }
         }
 
+        public async Task<IdentityResult> DeleteUserAsync(User user)
+        {
+            return await _userManager.DeleteAsync(user);
+        }
+
         public async Task<User> GetUserAsync(string email)
         {
-            return await _context.Users.Include(x => x.Document).FirstOrDefaultAsync(x=> x.Email== email);
+            return await _context.Users.Include(x => x.DocumentType)
+                .FirstOrDefaultAsync(x=> x.Email== email);
+        }
+        /*Aqui despues de el segundo include la sintaxis es ThenInclude*/
+        public async Task<User> GetUserAsync(Guid id)
+        {
+            return await _context.Users
+                .Include(x => x.DocumentType)
+                .FirstOrDefaultAsync(x => x.Id == id.ToString());
         }
 
         public async Task<bool> IsUserInRoleAsync(User user, string roleName)
@@ -59,6 +100,20 @@ namespace Taller.API.Helpers
         public async Task LogoutAsync()
         {
             await _signInManager.SignOutAsync();
+        }
+
+        //Update de la edición del usuario desde el admin
+        public async Task<IdentityResult> UpdateUserAsync(User user)
+        {
+            User currentUser = await GetUserAsync(user.Email);
+            currentUser.LastName = user.LastName;
+            currentUser.FirstName = user.FirstName;
+            currentUser.DocumentType = user.DocumentType;
+            currentUser.Document = user.Document;
+            currentUser.Address = user.Address;
+            currentUser.ImageId = user.ImageId;
+            currentUser.PhoneNumber = user.PhoneNumber;
+            return await _userManager.UpdateAsync(currentUser);
         }
     }
 }

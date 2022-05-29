@@ -4,8 +4,7 @@ using Taller.API.Datos;
 using Taller.API.Datos.Entidades;
 using Taller.API.Helpers;
 using Taller.API.Models;
-//using Taller.Common.Enums;
-//using Taller.Common.Models;
+using Taller.Common.Enums;
 
 namespace Taller.API.Controllers
 {
@@ -13,16 +12,16 @@ namespace Taller.API.Controllers
     {
         private readonly IUserHelper _userHelper;
         private readonly DataContext _context;
-        //    private readonly ICombosHelper _combosHelper;
-        //    private readonly IBlobHelper _blobHelper;
-        //    private readonly IMailHelper _mailHelper;
+        private readonly ICombosHelper _combosHelper;
+        private readonly IBlobHelper _blobHelper;
+        //private readonly IMailHelper _mailHelper;
 
-        public AccountController(IUserHelper userHelper)//, DataContext context, ICombosHelper combosHelper, IBlobHelper blobHelper, IMailHelper mailHelper)
+        public AccountController(IUserHelper userHelper, DataContext context, ICombosHelper combosHelper, IBlobHelper blobHelper)//, IMailHelper mailHelper)
         {
             _userHelper = userHelper;
-            // _context = context;
-            //_combosHelper = combosHelper;
-            //_blobHelper = blobHelper;
+            _context = context;
+            _combosHelper = combosHelper;
+            _blobHelper = blobHelper;
             // this._mailHelper = mailHelper;
         }
 
@@ -65,6 +64,57 @@ namespace Taller.API.Controllers
             await _userHelper.LogoutAsync();
             return RedirectToAction("Index", "Home");
         }
+        /*metodo para accesos no autorizados*/
+        public IActionResult NotAuthorized()
+        {
+            return View();
+        }
 
+        public IActionResult Register()
+        {
+            AddUserViewModel model = new AddUserViewModel
+            {
+                DocumentTypes = _combosHelper.GetComboDocumentTypes()
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Register(AddUserViewModel model)
+        {
+
+                Guid imageId = Guid.Empty;
+
+                if (model.ImageFile != null)
+                {
+                    imageId = await _blobHelper.UploadBlobAsync(model.ImageFile, "user");
+                }
+
+                User user = await _userHelper.AddUserAsync(model, imageId, UserType.User);
+                if (user == null)
+                {
+                    ModelState.AddModelError(string.Empty, "Este correo ya está siendo usado por otro usuario.");
+                    model.DocumentTypes = _combosHelper.GetComboDocumentTypes();
+                    return View(model);
+                }
+
+                LoginViewModel loginViewModel = new LoginViewModel
+                {
+                    Password = model.Password,
+                    RememberMe = false,
+                    Username = model.Username
+                };
+
+                var result2 = await _userHelper.LoginAsync(loginViewModel);
+                if (result2.Succeeded)
+                {
+                    return RedirectToAction("Index", "Home");
+                
+            }    
+            model.DocumentTypes = _combosHelper.GetComboDocumentTypes();
+            return View(model);
+        }
     }
 }

@@ -6,7 +6,7 @@ using Taller.API.Datos.Entidades;
 
 namespace Taller.API.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    //[Authorize(Roles = "Admin")]
     public class DocumentTypesController : Controller
     {
         private readonly DataContext _context;
@@ -28,10 +28,9 @@ namespace Taller.API.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Description")] DocumentType documentType)
+        public async Task<IActionResult> Create(DocumentType documentType)
         {
-            if (ModelState.IsValid)
-            {
+        
                 try
                 {
                     _context.Add(documentType);
@@ -53,7 +52,7 @@ namespace Taller.API.Controllers
                 {
                     ModelState.AddModelError(string.Empty, exception.Message);
                 }
-            }
+            
             return View(documentType);
         }
 
@@ -75,15 +74,14 @@ namespace Taller.API.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Description")] DocumentType documentType)
+        public async Task<IActionResult> Edit(int id, DocumentType documentType)
         {
             if (id != documentType.Id)
             {
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
-            {
+
                 try
                 {
                     _context.Update(documentType);
@@ -104,7 +102,7 @@ namespace Taller.API.Controllers
                 catch (Exception exception)
                 {
                     ModelState.AddModelError(string.Empty, exception.Message);
-                }
+                
             }
             return View(documentType);
         }

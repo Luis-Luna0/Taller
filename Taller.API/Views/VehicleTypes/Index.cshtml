@@ -44,7 +44,7 @@
     </div>
 </div>
 
-<partial name="_DeleteDialog" />
+<partial name="_DeleteDialog"/>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
@@ -63,7 +63,7 @@
                 ]
             });
             // Delete item
-            sc_deleteDialog.openModal('deleteItem', true, 'btnYesDelete', '/VehicleTypes/Delete/', false);
+            deleteDialog.openModal('deleteItem', true, 'btnYesDelete', '/VehicleTypes/Delete/', false);
         });
     </script>
 }
